@@ -7,15 +7,17 @@ public:
     enum Type
     {
         OPERATOR,      // унарный/бинарный оператор
-        C_PARANTHESIS, // закрывающая скобка
-        O_PARANTHESIS, // открывающая скобка
+        L_PARANTHESIS, // открывающая скобка
+        R_PARANTHESIS, // закрывающая скобка
         INT_LITERAL,   // целое число
-        FLOAT_LITERAL  // число с плавающей точкой (double)
+        FLOAT_LITERAL, // число с плавающей точкой 
+        FUNCTION,      // функция
+        SEPARATOR      // разделитель аргументов функции
     };
 
     enum OperatorAssociativity
     {
-        NONE,  // токен - не оператор / не открыващая скобка
+        NONE,  // токен - не оператор и не открыващая скобка
         RIGHT,
         LEFT
     };

@@ -2,10 +2,12 @@
 #include <iostream>
 #include <stack>
 #include <cmath>
+#include <tuple>
 
 void shuntingYard(const std::vector<Token> &expr, std::vector<Token> &outQueue)
 {
     std::stack<Token> stack;
+    auto fromStackToQueue = [&]() { outQueue.push_back(stack.top()); stack.pop(); };
     for(const auto& token : expr)
     {
         switch(token.getType())
@@ -19,71 +21,80 @@ void shuntingYard(const std::vector<Token> &expr, std::vector<Token> &outQueue)
         case Token::OPERATOR:
             if(!stack.empty())
             {
-                while((stack.top().getPrecendance() > token.getPrecendance())
-                        || (stack.top().getPrecendance() == token.getPrecendance() && token.getAsc() == Token::LEFT))
+                while(stack.top().getType() == Token::OPERATOR && ((stack.top().getPrecendance() > token.getPrecendance())
+                        || (stack.top().getPrecendance() == token.getPrecendance() && token.getAsc() == Token::LEFT)))
                 {
-                    outQueue.push_back(stack.top());
-                    stack.pop();
+                    fromStackToQueue();
                     if(stack.empty()) 
                         break;
                 }
             }
             stack.push(token);
             break;
-        case Token::O_PARANTHESIS:
+        case Token::L_PARANTHESIS:
             stack.push(token);
             break;
-        case Token::C_PARANTHESIS:
-            if(stack.empty()) 
-                break;
-            while (stack.top().getType() != Token::O_PARANTHESIS)
+        case Token::R_PARANTHESIS:
+            if(stack.empty())
+                throw CustomException("Non-balanced on paranthesis expression!");
+            while (stack.top().getType() != Token::L_PARANTHESIS)
             {
-                outQueue.push_back(stack.top());
-                stack.pop();
+                fromStackToQueue();
                 if (stack.empty())
                     throw CustomException("Non-balanced on paranthesis expression!");
             }
             stack.pop();
+            if(stack.top().getType() == Token::FUNCTION)
+                fromStackToQueue();
+            break;
+        case Token::FUNCTION:
+            stack.push(token);
+            break;
+        case Token::SEPARATOR:
+            if(stack.empty())
+                throw CustomException("Paranthesis or separator missed!");
+            while(stack.top().getType() != Token::L_PARANTHESIS)
+            {
+                fromStackToQueue();
+                if(stack.empty())
+                    throw CustomException("Paranthesis or separator missed!");
+            }
             break;
         }
     }
     while(!stack.empty())
     {
-        if(stack.top().getType() == Token::O_PARANTHESIS)
+        if(stack.top().getType() == Token::L_PARANTHESIS)
             throw CustomException("Non-balanced on paranthesis expression!");
         else
-        {
-            outQueue.push_back(stack.top());
-            stack.pop();
-        }
+            fromStackToQueue();
     } 
 }
 
 double countRPN(const std::vector<Token> &expr)
 {
     std::stack<double> stack;
-    for(auto& token : expr)
+    auto getOneToken = [&]() { double x = stack.top(); stack.pop(); return x; };
+    auto getTwoTokens = [&]()  
+        { double x = stack.top(); stack.pop(); double y = stack.top(); stack.pop(); return std::tuple{y,x}; };
+    double res;
+    for (auto &token : expr)
     {
+        const std::string &str = token.getStr();
         switch(token.getType())
         {
         case Token::INT_LITERAL:
-            stack.push(std::stof(token.getStr()));
+            stack.push(std::stof(str));
             break;
         case Token::FLOAT_LITERAL:
-            stack.push(std::stof(token.getStr()));
+            stack.push(std::stof(str));
             break;
         case Token::OPERATOR:
-        {
-            const std::string &str = token.getStr();
-            double a,b,res;
             switch(token.getAsc())
             {
             case Token::LEFT:
             {
-                b = stack.top();
-                stack.pop();
-                a = stack.top();
-                stack.pop();
+                auto [a,b] = getTwoTokens(); 
                 if      (str == "+") res = a + b;
                 else if (str == "-") res = a - b;
                 else if (str == "*") res = a * b;
@@ -94,8 +105,7 @@ double countRPN(const std::vector<Token> &expr)
             }
             case Token::RIGHT:
             {
-                a = stack.top();
-                stack.pop();
+                auto a = getOneToken();
                 if   (str == "-") res = -a;
                 else throw CustomException("Unknown operator!");
                 break;
@@ -103,14 +113,35 @@ double countRPN(const std::vector<Token> &expr)
             }
             stack.push(res);
             break;
-        }
-        case Token::O_PARANTHESIS:
-            throw CustomException("Paranthesis in RPN!");
+        case Token::FUNCTION:
+            if(str == "log") 
+            {
+                auto [a,b] = getTwoTokens();
+                res = std::log(b) / std::log(a);
+            }
+            else if(str == "ln")
+            {
+                auto a = getOneToken();
+                res = std::log(a);
+            }
+            else if(str == "max")
+            {
+                auto[a,b] = getTwoTokens();
+                res = a > b ? a : b;
+            }
+            else if(str == "min")
+            {
+                auto[a,b] = getTwoTokens();
+                res = a < b ? a : b;
+            }
+            else
+                throw CustomException("Unknown function!");
+            stack.push(res);
             break;
-        case Token::C_PARANTHESIS:
-            throw CustomException("Paranthesis in RPN!");
+        default:
             break;
         } 
     }
+    if(stack.size() > 1) throw CustomException("Syntax Error");
     return stack.top();
 }

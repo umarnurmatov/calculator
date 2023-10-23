@@ -6,9 +6,9 @@ Token::Token(std::string token, Type type, OperatorAssociativity asc)
 : type{type}
 , str{token}
 {
-    if((type == OPERATOR || type == O_PARANTHESIS) && asc == NONE)
+    if((type == OPERATOR || type == L_PARANTHESIS) && asc == NONE)
         throw CustomException("Associativity required!");
-    else if(type != OPERATOR && type != O_PARANTHESIS && asc != NONE)
+    else if(type != OPERATOR && type != L_PARANTHESIS && asc != NONE)
         throw CustomException("Non-operator/non-opening-paranthesis token can't have an associativity!");
 
     opAsc = asc;
