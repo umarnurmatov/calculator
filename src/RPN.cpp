@@ -74,9 +74,15 @@ void shuntingYard(const std::vector<Token> &expr, std::vector<Token> &outQueue)
 double countRPN(const std::vector<Token> &expr)
 {
     std::stack<double> stack;
-    auto getOneToken = [&]() { double x = stack.top(); stack.pop(); return x; };
-    auto getTwoTokens = [&]()  
-        { double x = stack.top(); stack.pop(); double y = stack.top(); stack.pop(); return std::tuple{y,x}; };
+    auto getOneToken = [&]() 
+    {
+        if(stack.empty()) throw SyntaxError("Not enough argument in function!");
+        double x = stack.top(); 
+        stack.pop(); 
+        return x; 
+    };
+    auto getTwoTokens = [&]()
+        { double x = getOneToken(), y = getOneToken(); return std::tuple{y,x}; };
     double res;
     for (auto &token : expr)
     {
@@ -118,6 +124,11 @@ double countRPN(const std::vector<Token> &expr)
             {
                 auto [a,b] = getTwoTokens();
                 res = std::log(b) / std::log(a);
+            }
+            else if (str == "log2")
+            {
+                auto a = getOneToken();
+                res = std::log2(a);
             }
             else if(str == "ln")
             {
