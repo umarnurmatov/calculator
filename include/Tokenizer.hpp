@@ -3,7 +3,7 @@
 #include <vector>
 #include <map>
 #include "Token.hpp"
-#include "CustomException.hpp"
+#include "SyntaxError.hpp"
 
 class TokenizerFSM
 {

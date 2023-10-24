@@ -1,15 +1,15 @@
 #include "Token.hpp"
 #include <map>
-#include "CustomException.hpp"
+#include "SyntaxError.hpp"
 
 Token::Token(std::string token, Type type, OperatorAssociativity asc)
 : type{type}
 , str{token}
 {
     if((type == OPERATOR || type == L_PARANTHESIS) && asc == NONE)
-        throw CustomException("Associativity required!");
+        throw SyntaxError("Associativity required!");
     else if(type != OPERATOR && type != L_PARANTHESIS && asc != NONE)
-        throw CustomException("Non-operator/non-opening-paranthesis token can't have an associativity!");
+        throw SyntaxError("Non-operator/non-opening-paranthesis token can't have an associativity!");
 
     opAsc = asc;
 }
@@ -38,14 +38,14 @@ int Token::getPrecendance() const
     {
     case LEFT:
         if(op_leftassociative.contains(str)) return op_leftassociative[str];
-        else throw CustomException("Unknown Operator!");
+        else throw SyntaxError("Unknown Operator!");
         break;
     case RIGHT:
         if(op_rightassociative.contains(str)) return op_rightassociative[str];
-        else throw CustomException("Unknown Operator!");
+        else throw SyntaxError("Unknown Operator!");
         break;
     case NONE:
-        throw CustomException("Token is not a operator, impossible!");
+        throw SyntaxError("Token is not a operator, impossible!");
         break;
     }
 }

@@ -1,12 +1,12 @@
 #pragma once
 #include <string>
 
-class CustomException
+class SyntaxError
 {
 public:
-    CustomException(std::string msg)
+    SyntaxError(std::string msg)
     {
-        _msg = "CustomError: " + msg;
+        _msg = "Syntax Error: " + msg;
     }
     std::string what() { return _msg; }
 

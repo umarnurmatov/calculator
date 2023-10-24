@@ -36,15 +36,15 @@ void shuntingYard(const std::vector<Token> &expr, std::vector<Token> &outQueue)
             break;
         case Token::R_PARANTHESIS:
             if(stack.empty())
-                throw CustomException("Non-balanced on paranthesis expression!");
+                throw SyntaxError("Non-balanced on paranthesis expression!");
             while (stack.top().getType() != Token::L_PARANTHESIS)
             {
                 fromStackToQueue();
                 if (stack.empty())
-                    throw CustomException("Non-balanced on paranthesis expression!");
+                    throw SyntaxError("Non-balanced on paranthesis expression!");
             }
             stack.pop();
-            if(stack.top().getType() == Token::FUNCTION)
+            if(!stack.empty() && stack.top().getType() == Token::FUNCTION)
                 fromStackToQueue();
             break;
         case Token::FUNCTION:
@@ -52,12 +52,12 @@ void shuntingYard(const std::vector<Token> &expr, std::vector<Token> &outQueue)
             break;
         case Token::SEPARATOR:
             if(stack.empty())
-                throw CustomException("Paranthesis or separator missed!");
+                throw SyntaxError("Paranthesis or separator missed!");
             while(stack.top().getType() != Token::L_PARANTHESIS)
             {
                 fromStackToQueue();
                 if(stack.empty())
-                    throw CustomException("Paranthesis or separator missed!");
+                    throw SyntaxError("Paranthesis or separator missed!");
             }
             break;
         }
@@ -65,7 +65,7 @@ void shuntingYard(const std::vector<Token> &expr, std::vector<Token> &outQueue)
     while(!stack.empty())
     {
         if(stack.top().getType() == Token::L_PARANTHESIS)
-            throw CustomException("Non-balanced on paranthesis expression!");
+            throw SyntaxError("Non-balanced on paranthesis expression!");
         else
             fromStackToQueue();
     } 
@@ -100,14 +100,14 @@ double countRPN(const std::vector<Token> &expr)
                 else if (str == "*") res = a * b;
                 else if (str == "/") res = a / b;
                 else if (str == "^") res = std::pow(a,b);
-                else    throw CustomException("Unknown operator!");
+                else    throw SyntaxError("Unknown operator!");
                 break;
             }
             case Token::RIGHT:
             {
                 auto a = getOneToken();
                 if   (str == "-") res = -a;
-                else throw CustomException("Unknown operator!");
+                else throw SyntaxError("Unknown operator!");
                 break;
             }
             }
@@ -124,6 +124,11 @@ double countRPN(const std::vector<Token> &expr)
                 auto a = getOneToken();
                 res = std::log(a);
             }
+            else if(str == "lg")
+            {
+                auto a = getOneToken();
+                res = std::log10(a);
+            }
             else if(str == "max")
             {
                 auto[a,b] = getTwoTokens();
@@ -134,14 +139,39 @@ double countRPN(const std::vector<Token> &expr)
                 auto[a,b] = getTwoTokens();
                 res = a < b ? a : b;
             }
+            else if(str == "sqrt")
+            {
+                auto a = getOneToken();
+                res = std::sqrt(a);
+            }
+            else if(str == "sin")
+            {
+                auto a = getOneToken();
+                res = std::sin(a);
+            }
+            else if(str == "cos")
+            {
+                auto a = getOneToken();
+                res = std::cos(a);
+            }
+            else if (str == "tg")
+            {
+                auto a = getOneToken();
+                res = std::tan(a);
+            }
+            else if (str == "ctg")
+            {
+                auto a = getOneToken();
+                res = 1 / std::tan(a);
+            }
             else
-                throw CustomException("Unknown function!");
+                throw SyntaxError("Unknown function!");
             stack.push(res);
             break;
         default:
             break;
         } 
     }
-    if(stack.size() > 1) throw CustomException("Syntax Error");
+    if(stack.size() > 1) throw SyntaxError({});
     return stack.top();
 }

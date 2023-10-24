@@ -7,7 +7,7 @@ int main()
     TokenizerFSM tokenizer;
     std::vector<Token> tokensInfix, tokensRPN;
 
-    std::string expr = "ln(2)";
+    std::string expr = "(2/3.14)*sqrt(0.1*10^(-3)/0.02)";
     std::cout << "Expression: " << expr << std::endl;
 
     try
@@ -23,7 +23,7 @@ int main()
 
         std::cout << "Answer: " << countRPN(tokensRPN) << "\n";
     }
-    catch(CustomException &e)
+    catch(SyntaxError &e)
     {
         std::cerr << e.what() << "\n";
         exit(-1);
