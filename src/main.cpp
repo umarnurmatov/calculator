@@ -22,7 +22,7 @@ int main()
 
         std::cout << "Answer: " << countRPN(tokensRPN) << "\n";
     }
-    catch(SyntaxError &e)
+    catch(Error &e)
     {
         std::cerr << e.what() << "\n";
         exit(-1);

@@ -3,6 +3,7 @@
 #include <stack>
 #include <cmath>
 #include <tuple>
+#include <format>
 
 void shuntingYard(const std::vector<Token> &expr, std::vector<Token> &outQueue)
 {
@@ -36,12 +37,12 @@ void shuntingYard(const std::vector<Token> &expr, std::vector<Token> &outQueue)
             break;
         case Token::R_PARANTHESIS:
             if(stack.empty())
-                throw SyntaxError("Non-balanced on paranthesis expression!");
+                throw Error("Non-balanced on paranthesis expression!", Error::Syntax);
             while (stack.top().getType() != Token::L_PARANTHESIS)
             {
                 fromStackToQueue();
                 if (stack.empty())
-                    throw SyntaxError("Non-balanced on paranthesis expression!");
+                    throw Error("Paranthesis or separator missed!", Error::Syntax);
             }
             stack.pop();
             if(!stack.empty() && stack.top().getType() == Token::FUNCTION)
@@ -52,12 +53,12 @@ void shuntingYard(const std::vector<Token> &expr, std::vector<Token> &outQueue)
             break;
         case Token::SEPARATOR:
             if(stack.empty())
-                throw SyntaxError("Paranthesis or separator missed!");
+                throw Error("Paranthesis or separator missed!", Error::Syntax);
             while(stack.top().getType() != Token::L_PARANTHESIS)
             {
                 fromStackToQueue();
                 if(stack.empty())
-                    throw SyntaxError("Paranthesis or separator missed!");
+                    throw Error("Paranthesis-unbalanced expression!", Error::Syntax);
             }
             break;
         }
@@ -65,7 +66,7 @@ void shuntingYard(const std::vector<Token> &expr, std::vector<Token> &outQueue)
     while(!stack.empty())
     {
         if(stack.top().getType() == Token::L_PARANTHESIS)
-            throw SyntaxError("Non-balanced on paranthesis expression!");
+            throw Error("Paranthesis-unbalanced expression!", Error::Syntax);
         else
             fromStackToQueue();
     } 
@@ -76,14 +77,18 @@ double countRPN(const std::vector<Token> &expr)
     std::stack<double> stack;
     auto getOneToken = [&]() 
     {
-        if(stack.empty()) throw SyntaxError("Not enough argument in function!");
+        if(stack.empty()) throw Error("Not enough argument in function!", Error::Syntax);
         double x = stack.top(); 
         stack.pop(); 
         return x; 
     };
     auto getTwoTokens = [&]()
         { double x = getOneToken(), y = getOneToken(); return std::tuple{y,x}; };
+    auto checkedDivision = [&](double a, double b)
+        { if(b == 0.f) throw Error("Division by zero", Error::Math); return a / b; };
+
     double res;
+
     for (auto &token : expr)
     {
         const std::string &str = token.getStr();
@@ -104,18 +109,21 @@ double countRPN(const std::vector<Token> &expr)
                 if      (str == "+") res = a + b;
                 else if (str == "-") res = a - b;
                 else if (str == "*") res = a * b;
-                else if (str == "/") if(b == 0.f) throw SyntaxError("Division bt zero!"); else res = a / b;
+                else if (str == "/") res = checkedDivision(a, b);
                 else if (str == "^") res = std::pow(a,b);
-                else    throw SyntaxError("Unknown operator!");
+                else    throw Error("Unknown operator!", Error::Syntax);
                 break;
             }
             case Token::RIGHT:
             {
                 auto a = getOneToken();
                 if   (str == "-") res = -a;
-                else throw SyntaxError("Unknown operator!");
+                else throw Error("Unknown operator!", Error::Syntax);
                 break;
             }
+            case Token::NONE:
+                throw std::logic_error("Operator must have associativity!");
+                break;
             }
             stack.push(res);
             break;
@@ -123,26 +131,26 @@ double countRPN(const std::vector<Token> &expr)
             if(str == "log") 
             {
                 auto [a,b] = getTwoTokens();
-                if(a <= 0.f) throw SyntaxError("log_a(b), a < 0, impossible");
-                if(b <= 0.f) throw SyntaxError("log_a(b), b <= 0, impossible");
+                if(a <= 0.f || a == 1.0f) throw Error(std::format("log(a,x): not defined for a = {}", a), Error::Math);
+                if(b <= 0.f) throw Error("log(a,x): out of function's domain", Error::Math);
                 res = std::log(b) / std::log(a);
             }
             else if (str == "log2")
             {
                 auto a = getOneToken();
-                if(a <= 0.f) throw SyntaxError("log2(a), a <= 0, impossible");
+                if(a <= 0.f) throw Error("log2(x): out of function's domain", Error::Math);
                 res = std::log2(a);
             }
             else if(str == "ln")
             {
                 auto a = getOneToken();
-                if(a <= 0.f) throw SyntaxError("ln(a), a <= 0, impossible");
+                if(a <= 0.f) throw Error("ln(x): out of function's domain", Error::Math);
                 res = std::log(a);
             }
             else if(str == "lg")
             {
                 auto a = getOneToken();
-                if(a <= 0.f) throw SyntaxError("lg(a), a <= 0, impossible");
+                if(a <= 0.f) throw Error("lg(x): out of function's domain", Error::Math);
                 res = std::log10(a);
             }
             else if(str == "max")
@@ -181,13 +189,12 @@ double countRPN(const std::vector<Token> &expr)
                 res = 1 / std::tan(a);
             }
             else
-                throw SyntaxError("Unknown function!");
+                throw Error("Unknown function!", Error::Syntax);
             stack.push(res);
             break;
         default:
             break;
         } 
     }
-    if(stack.size() > 1) throw SyntaxError({});
     return stack.top();
 }

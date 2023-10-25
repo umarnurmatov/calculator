@@ -3,7 +3,7 @@
 #include <format>
 #include <map>
 #include <string>
-#include "SyntaxError.hpp"
+#include "Error.hpp"
 
 void tokenize(const std::string &expr, std::vector<Token> &tokens)
 {
@@ -30,7 +30,7 @@ void tokenize(const std::string &expr, std::vector<Token> &tokens)
 
         // Если тип символа неопределен, значит ошибка в синтаксисе
         if(!(isDigit || isLetter || isParanth || isPoint || isSep || isOp))
-            throw SyntaxError(std::format("Unknown symbol: {}", s));
+            throw Error(std::format("Unknown symbol: {}", s), Error::Syntax);
 
         // Смена состояния
         switch(state)
@@ -43,7 +43,7 @@ void tokenize(const std::string &expr, std::vector<Token> &tokens)
             else if (isLetter)
                 state = S4;
             else if (isPoint || isSep)
-                throw SyntaxError(std::format("Unexpected symbol: {}", s));
+                throw Error(std::format("Unexpected symbol: \"{}\"", s), Error::Syntax);
             break;
         case S1:
             if (isDigit)
@@ -51,7 +51,7 @@ void tokenize(const std::string &expr, std::vector<Token> &tokens)
             else if (isLetter)
                 state = S4;
             else if (isPoint || isSep)
-                throw SyntaxError(std::format("Unexpected symbol: {}", s));
+                throw Error(std::format("Unexpected symbol: \"{}\"", s), Error::Syntax);
             break;
         case S2:
             bufferTokenType = Token::INT_LITERAL;
@@ -60,21 +60,21 @@ void tokenize(const std::string &expr, std::vector<Token> &tokens)
             else if (isParanth || isOp || isSep)
                 state = S5;
             else if (isLetter)
-                throw SyntaxError(std::format("Unexpected symbol: {}", s));
+                throw Error(std::format("Unexpected symbol: \"{}\"", s), Error::Syntax);
             break;
         case S3:
             bufferTokenType = Token::FLOAT_LITERAL;
             if (isParanth || isOp || isSep)
                 state = S5;
             else if (isPoint)
-                throw SyntaxError(std::format("Unexpected symbol: {}", s));
+                throw Error(std::format("Unexpected symbol: \"{}\"", s), Error::Syntax);
             break;
         case S4:
             bufferTokenType = Token::FUNCTION;
             if(isLParanth)
                 state = S5;
             else if(isDigit || isOp || isRParanth || isSep)
-                throw SyntaxError(std::format("Unexpected symbol: {}", s));
+                throw Error(std::format("Unexpected symbol \"{}\"", s), Error::Syntax);
             break;
         case S5:
             if (isParanth || isOp)
@@ -84,7 +84,7 @@ void tokenize(const std::string &expr, std::vector<Token> &tokens)
             else if (isLetter)
                 state = S4;
             else if (isPoint || isSep)
-                throw SyntaxError(std::format("Unexpected symbol: {}", s));
+                throw Error(std::format("Unexpected symbol: \"{}\"", s), Error::Syntax);
             break;
         default:
             break;
