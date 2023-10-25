@@ -4,15 +4,14 @@
 
 int main()
 {
-    TokenizerFSM tokenizer;
     std::vector<Token> tokensInfix, tokensRPN;
 
-    std::string expr = "(2/3.14)*sqrt(0.1*10^(-3)/0.02)";
+    std::string expr = "123+(2/(3.14))*(sqrt(0.1*10^(-3)/0.02))";
     std::cout << "Expression: " << expr << std::endl;
 
     try
     {
-        tokenizer.tokenize(expr, tokensInfix);
+        tokenize(expr, tokensInfix);
         for(auto& i : tokensInfix) std::cout << i.getStr() << ", type = " << i.getType() << ", associative = " << i.getAsc() << "\n";
 
         shuntingYard(tokensInfix, tokensRPN);

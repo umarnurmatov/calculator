@@ -1,14 +1,24 @@
 #include "Tokenizer.hpp"
 #include <iostream>
 #include <format>
+#include <map>
+#include <string>
+#include "SyntaxError.hpp"
 
-void TokenizerFSM::tokenize(std::string &expr, std::vector<Token> &tokens)
+void tokenize(const std::string &expr, std::vector<Token> &tokens)
 {
+    State state = S0;
+
+    std::string validOperators = "+-*^/";
+
     bool isDigit, isLetter, isOp, isParanth, isPoint, isSep, isLParanth, isRParanth;
+
     std::string buffer;
     Token::Type bufferTokenType = Token::INT_LITERAL;
+
     for(auto& s : expr)
     {
+        // Определяем тип символа
         isDigit = std::isdigit(s);
         isLetter = std::isalpha(s);
         isLParanth = s == '(';
@@ -16,12 +26,13 @@ void TokenizerFSM::tokenize(std::string &expr, std::vector<Token> &tokens)
         isParanth = isLParanth || isRParanth;
         isPoint = s == '.';
         isSep = s == ',';
-        isOp = ops.find(s) != ops.npos;
+        isOp = validOperators.find(s) != validOperators.npos;
 
+        // Если тип символа неопределен, значит ошибка в синтаксисе
         if(!(isDigit || isLetter || isParanth || isPoint || isSep || isOp))
             throw SyntaxError(std::format("Unknown symbol: {}", s));
 
-        // смена состояния
+        // Смена состояния
         switch(state)
         {
         case S0:
@@ -91,10 +102,7 @@ void TokenizerFSM::tokenize(std::string &expr, std::vector<Token> &tokens)
             }
             else if(isParanth)
             {
-                if(isLParanth)
-                    tokens.push_back({std::string{s}, Token::L_PARANTHESIS, Token::LEFT});
-                else
-                    tokens.push_back({std::string{s}, Token::R_PARANTHESIS});
+                tokens.push_back({std::string{s}, isRParanth ? Token::R_PARANTHESIS : Token::L_PARANTHESIS});
             }
             else if(isSep)
             {
@@ -102,21 +110,13 @@ void TokenizerFSM::tokenize(std::string &expr, std::vector<Token> &tokens)
             }
         };
 
-        // действия
+        // Действия
         switch(state)
         {
-        case S0:
-            break;
         case S1:
             tokenize_Op_Paranth_Sep();
             break;
-        case S2:
-            buffer.push_back(s);
-            break;
-        case S3:
-            buffer.push_back(s);
-            break;
-        case S4:
+        case S2: case S3: case S4:
             buffer.push_back(s);
             break;
         case S5:

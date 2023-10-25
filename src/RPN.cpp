@@ -104,7 +104,7 @@ double countRPN(const std::vector<Token> &expr)
                 if      (str == "+") res = a + b;
                 else if (str == "-") res = a - b;
                 else if (str == "*") res = a * b;
-                else if (str == "/") res = a / b;
+                else if (str == "/") if(b == 0.f) throw SyntaxError("Division bt zero!"); else res = a / b;
                 else if (str == "^") res = std::pow(a,b);
                 else    throw SyntaxError("Unknown operator!");
                 break;
@@ -123,21 +123,26 @@ double countRPN(const std::vector<Token> &expr)
             if(str == "log") 
             {
                 auto [a,b] = getTwoTokens();
+                if(a <= 0.f) throw SyntaxError("log_a(b), a < 0, impossible");
+                if(b <= 0.f) throw SyntaxError("log_a(b), b <= 0, impossible");
                 res = std::log(b) / std::log(a);
             }
             else if (str == "log2")
             {
                 auto a = getOneToken();
+                if(a <= 0.f) throw SyntaxError("log2(a), a <= 0, impossible");
                 res = std::log2(a);
             }
             else if(str == "ln")
             {
                 auto a = getOneToken();
+                if(a <= 0.f) throw SyntaxError("ln(a), a <= 0, impossible");
                 res = std::log(a);
             }
             else if(str == "lg")
             {
                 auto a = getOneToken();
+                if(a <= 0.f) throw SyntaxError("lg(a), a <= 0, impossible");
                 res = std::log10(a);
             }
             else if(str == "max")

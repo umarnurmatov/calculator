@@ -6,10 +6,13 @@ Token::Token(std::string token, Type type, OperatorAssociativity asc)
 : type{type}
 , str{token}
 {
-    if((type == OPERATOR || type == L_PARANTHESIS) && asc == NONE)
+    // если токен - оператор, но ассоциативность не задана - ошибка
+    if(type == OPERATOR && asc == NONE)
         throw SyntaxError("Associativity required!");
-    else if(type != OPERATOR && type != L_PARANTHESIS && asc != NONE)
-        throw SyntaxError("Non-operator/non-opening-paranthesis token can't have an associativity!");
+
+    // если токен - НЕ оператор, но ассоциативность задана - ошибка
+    else if(type != OPERATOR && asc != NONE)
+        throw SyntaxError("Non-operator token can't have an associativity!");
 
     opAsc = asc;
 }
@@ -22,16 +25,13 @@ int Token::getPrecendance() const
         {"-", 2},
         {"/", 3},
         {"*", 3},
-        {"%", 4},
-        {"-", 5},
-        {"^", 7},
-        {"(", -1}
+        {"^", 5}
     };
 
 
     static std::map<std::string, int> op_rightassociative = 
     {
-        {"-", 6} // unary negation
+        {"-", 4} // унарное отрицание
     };
 
     switch(opAsc)
@@ -45,7 +45,7 @@ int Token::getPrecendance() const
         else throw SyntaxError("Unknown Operator!");
         break;
     case NONE:
-        throw SyntaxError("Token is not a operator, impossible!");
+        throw SyntaxError("Token is not an operator, impossible!");
         break;
     }
 }

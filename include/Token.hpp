@@ -4,6 +4,7 @@
 class Token
 {
 public:
+    // Тип
     enum Type
     {
         OPERATOR,      // унарный/бинарный оператор
@@ -15,15 +16,17 @@ public:
         SEPARATOR      // разделитель аргументов функции
     };
 
+    // Ассоциативность
     enum OperatorAssociativity
     {
-        NONE,  // токен - не оператор и не открыващая скобка
-        RIGHT,
-        LEFT
+        NONE,  // токен - не оператор
+        RIGHT, // правоассоциативный
+        LEFT   // левоассоциативный
     };
 
     Token(std::string token, Type type, OperatorAssociativity asc = NONE);
-    
+
+    // Приоритет
     int getPrecendance() const;
 
     const Type& getType() const  { return type; }
