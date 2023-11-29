@@ -1,5 +1,6 @@
 #include <map>
 #include <stdexcept>
+#include <format>
 #include "Token.hpp"
 #include "Error.hpp"
 
@@ -46,7 +47,9 @@ int Token::getPrecendance() const
         else throw Error("Unknown Operator!", Error::Syntax);
         break;
     case NONE:
-        throw std::logic_error("Token is not an operator, impossible!");
+        throw std::logic_error(
+          std::format("Token \"{}\" is not an operatator, impossible.", str)
+        );
         break;
     }
 }

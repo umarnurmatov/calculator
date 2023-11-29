@@ -1,0 +1,60 @@
+\documentclass[10pt,a4paper]{article}
+\usepackage{lscape}
+\usepackage[utf8]{inputenc}
+\usepackage[russian]{babel}
+\usepackage[OT1]{fontenc}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{tikz}
+\usetikzlibrary {arrows.meta,automata,positioning,shadows} 
+
+\author{Umar Nurmatov}
+\title{FSM for Math Tokenizer}
+
+\begin{document}
+\begin{figure}[ht]
+\centering
+\begin{tikzpicture}[->,node distance=5cm,on grid,initial 									text=Символ]
+\node[state, initial, accepting] (0) {S0};
+\node[state, above=2cm of 0, draw=none, text=red] (Er0) {Ошибка};
+\node[state, below left of=0] (1) {S2};
+\node[state, below=2cm of 1, xshift=-2cm, draw=none, text=red] (Er1) {Ошибка};
+\node[state, below of=1] (2) {S3};
+\node[state, below=2cm of 2, xshift=-1cm, draw=none, text=red] (Er2) {Ошибка};
+\node[state, right of=1] (4) {S1};
+\node[state, below=1.7cm of 4, xshift=1.5cm, draw=none, text=red] (Er4) {Ошибка};
+\node[state, right of=4] (3) {S4};
+\node[state, below=2cm of 3, xshift=1cm, draw=none, text=red] (Er3) {Ошибка};
+\node[state, below=5cm of 4] (Buf) {S5};
+\node[state, below=2cm of Buf, xshift=1cm, draw=none, text=red] (ErBuf) {Ошибка};
+
+
+\path (0) 	edge node[left] {.\; ,} (Er0)
+	  	  	edge[bend right] node[left] { Циф } (1)
+	  	  	edge[bend left] node[right=0.2] { Бук } (3)
+	  	  	edge[bend left] node[right=0.2] { Оп ( ) } (4)
+	  (1)	edge[bend right] node[left] {.} (2)
+	  		edge[loop left] node[left] { Циф } ()
+	  		edge[bend right] node[below=0.4] { Оп ( ) ,}(Buf)
+	  		edge node[left=0.1cm] {Бук} (Er1)
+	  (2)	edge[loop left] node[left] { Циф } ()
+	  		edge node[left] {Бук .} (Er2)
+	  		edge[bend right] node[below] { Оп ( ) ,} (Buf)
+	  (3)	edge[loop right] node[right] { Бук Циф } ()
+	  		edge node[right] { Оп ) , .} (Er3)
+	  		edge[bend left] node[right=0.2] { ( } (Buf)
+	  (4) 	edge[bend right] node[above] {Циф} (1)
+	  		edge[] node[above] {Бук} (3)
+	  		edge node[right] {.} (Er4)
+	  		edge[loop left] node[left] {Оп ( ) ,} ()
+	  (Buf)	edge[] node[left] {Оп ( )} (4)
+	  		edge node[right] {.} (ErBuf)
+	  		edge[] node[right] {Циф} (1)
+	  		edge[] node[left] {Бук} (3)
+	  		;
+\end{tikzpicture}
+\caption{Caption of the FSM}
+
+\end{figure}
+\end{document}

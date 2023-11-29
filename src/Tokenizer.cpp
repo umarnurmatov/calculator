@@ -73,7 +73,7 @@ void tokenize(const std::string &expr, std::vector<Token> &tokens)
             bufferTokenType = Token::FUNCTION;
             if(isLParanth)
                 state = S5;
-            else if(isDigit || isOp || isRParanth || isSep)
+            else if(isOp || isRParanth || isSep)
                 throw Error(std::format("Unexpected symbol \"{}\"", s), Error::Syntax);
             break;
         case S5:

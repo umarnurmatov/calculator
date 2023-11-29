@@ -14,10 +14,12 @@ void shuntingYard(const std::vector<Token> &expr, std::vector<Token> &outQueue)
         switch(token.getType())
         {
         case Token::INT_LITERAL:
-            outQueue.push_back(token);
-            break;
         case Token::FLOAT_LITERAL:
             outQueue.push_back(token);
+            break;
+        case Token::L_PARANTHESIS:
+        case Token::FUNCTION:
+            stack.push(token);
             break;
         case Token::OPERATOR:
             if(!stack.empty())
@@ -32,9 +34,7 @@ void shuntingYard(const std::vector<Token> &expr, std::vector<Token> &outQueue)
             }
             stack.push(token);
             break;
-        case Token::L_PARANTHESIS:
-            stack.push(token);
-            break;
+
         case Token::R_PARANTHESIS:
             if(stack.empty())
                 throw Error("Non-balanced on paranthesis expression!", Error::Syntax);
@@ -42,15 +42,13 @@ void shuntingYard(const std::vector<Token> &expr, std::vector<Token> &outQueue)
             {
                 fromStackToQueue();
                 if (stack.empty())
-                    throw Error("Paranthesis or separator missed!", Error::Syntax);
+                    throw Error("Non-balanced on paranthesis expression!", Error::Syntax);
             }
             stack.pop();
             if(!stack.empty() && stack.top().getType() == Token::FUNCTION)
                 fromStackToQueue();
             break;
-        case Token::FUNCTION:
-            stack.push(token);
-            break;
+
         case Token::SEPARATOR:
             if(stack.empty())
                 throw Error("Paranthesis or separator missed!", Error::Syntax);
@@ -77,7 +75,7 @@ double countRPN(const std::vector<Token> &expr)
     std::stack<double> stack;
     auto getOneToken = [&]() 
     {
-        if(stack.empty()) throw Error("Not enough argument in function!", Error::Syntax);
+        if(stack.empty()) throw Error("Not enough arguments in function!", Error::Syntax);
         double x = stack.top(); 
         stack.pop(); 
         return x; 
@@ -88,7 +86,6 @@ double countRPN(const std::vector<Token> &expr)
         { if(b == 0.f) throw Error("Division by zero", Error::Math); return a / b; };
 
     double res;
-
     for (auto &token : expr)
     {
         const std::string &str = token.getStr();
